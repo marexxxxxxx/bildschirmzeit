@@ -1,7 +1,7 @@
 import sys
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 import dashboard_data
 from cards import SummaryCard, ChartCard, AppsCard, CategoriesCard
 
@@ -41,6 +41,18 @@ class ScreenTimeWindow(Gtk.ApplicationWindow):
         self.build_dashboard()
 
         scrolled_window.set_child(self.grid_box)
+
+        # Set up a timer to refresh the dashboard every 60 seconds
+        GLib.timeout_add_seconds(60, self.refresh_dashboard)
+
+    def refresh_dashboard(self):
+        # Remove existing children
+        while child := self.grid_box.get_first_child():
+            self.grid_box.remove(child)
+
+        # Rebuild dashboard
+        self.build_dashboard()
+        return True
 
     def load_css(self):
         css_provider = Gtk.CssProvider()
