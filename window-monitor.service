@@ -1,0 +1,14 @@
+[Unit]
+Description=Hyprland Window Monitor Service
+After=hyprland.target
+Wants=hyprland.target
+
+[Service]
+Type=simple
+# Adjust the ExecStart path to point to where you placed the window_monitor.py script
+ExecStart=/usr/bin/env python3 %h/.local/bin/window_monitor.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
