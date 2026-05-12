@@ -2,7 +2,24 @@
 
 Ein Hintergrunddienst, der alle Fensterwechsel im Hyprland-Fenstermanager protokolliert. Er speichert die Klasse, den Titel, intelligent erkannte Apps (z.B. Chrome, Firefox) und Projekte (z.B. in VS Code) sowie die aktive Dauer jedes Fensters in einer lokalen SQLite-Datenbank.
 
-## Installation & Aktivierung
+## Voraussetzungen & Abhängigkeiten
+
+Damit das Dashboard und die UI-Komponenten (welche auf GTK4 basieren) reibungslos funktionieren, müssen zunächst die System-Abhängigkeiten für `PyGObject` installiert werden, bevor die Python-Pakete über `uv` bezogen werden können.
+
+### 1. Systempakete installieren (Omarchy / Arch Linux)
+Installiere die benötigten Bibliotheken (z. B. Cairo und GObject Introspection):
+```bash
+sudo pacman -S cairo gobject-introspection
+```
+*(Für Ubuntu/Debian: `sudo apt install libcairo2-dev pkg-config python3-dev build-essential libgirepository1.0-dev libgirepository-2.0-dev`)*
+
+### 2. Python-Abhängigkeiten installieren
+Nachdem die System-Pakete installiert sind, lade die Projektabhängigkeiten (inklusive `PyGObject`) mithilfe von `uv` herunter:
+```bash
+uv sync
+```
+
+## Installation & Aktivierung (Hintergrunddienst)
 
 1. **Skript platzieren**
    Kopiere das Skript `window_monitor.py` in ein Verzeichnis deiner Wahl, am besten nach `~/.local/bin/`. Mache es ausführbar:
