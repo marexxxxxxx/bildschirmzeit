@@ -4,35 +4,23 @@ Ein Hintergrunddienst, der alle Fensterwechsel im Hyprland-Fenstermanager protok
 
 ## Installation & Aktivierung
 
-1. **Skript platzieren**
-   Kopiere das Skript `window_monitor.py` in ein Verzeichnis deiner Wahl, am besten nach `~/.local/bin/`. Mache es ausführbar:
-   ```bash
-   mkdir -p ~/.local/bin
-   cp window_monitor.py ~/.local/bin/
-   chmod +x ~/.local/bin/window_monitor.py
-   ```
+Um den Time Tracker zu installieren und in Omarchy (https://omarchy.org/) zu integrieren, so dass die Zeit getrackt wird, führe das Installationsskript aus:
 
-2. **Systemd Service einrichten**
-   Kopiere die Datei `window-monitor.service` in das systemd-Verzeichnis für deinen Benutzer:
-   ```bash
-   mkdir -p ~/.config/systemd/user/
-   cp window-monitor.service ~/.config/systemd/user/
-   ```
-
-3. **Dienst aktivieren und starten**
-   Lade die systemd-Konfiguration neu und starte/aktiviere den Dienst:
-   ```bash
-   systemctl --user daemon-reload
-   systemctl --user enable --now window-monitor.service
-   ```
-   *`enable --now` bewirkt, dass der Dienst sofort startet und bei jedem Login automatisch mitgestartet wird.*
-
-## Deaktivieren des Dienstes
-
-Wenn du den Dienst stoppen und nicht mehr automatisch starten möchtest:
 ```bash
-systemctl --user disable --now window-monitor.service
+./install.sh
 ```
+
+Dieses Skript kopiert das Monitor-Skript an die richtige Stelle (`~/.local/bin/`), richtet den systemd-Service ein (`~/.config/systemd/user/`) und startet/aktiviert den Dienst automatisch.
+
+## Deaktivieren und Entfernen des Dienstes
+
+Wenn du den Dienst stoppen, deaktivieren und löschen möchtest, führe das Entfernen-Skript aus:
+
+```bash
+./remove.sh
+```
+
+Dieses Skript beendet den Dienst, entfernt die Dateien und lädt die systemd-Konfiguration neu. Die Datenbank bleibt zur Sicherheit erhalten.
 
 ## Überprüfen, ob der Dienst läuft
 

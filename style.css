@@ -1,0 +1,273 @@
+/* Global Colors */
+@define-color surface #faf9fe;
+@define-color surface_dim #dad9df;
+@define-color surface_lowest #ffffff;
+@define-color surface_low #f4f3f8;
+@define-color surface_container #eeedf3;
+@define-color surface_high #e9e7ed;
+@define-color surface_highest #e3e2e7;
+@define-color on_surface #1a1b1f;
+@define-color on_surface_variant #414755;
+@define-color outline rgba(113, 119, 134, 0.2);
+@define-color outline_variant rgba(193, 198, 215, 0.3);
+
+@define-color primary #0058bc;
+@define-color on_primary #ffffff;
+@define-color primary_container #0070eb;
+@define-color secondary #006e28;
+@define-color tertiary #4c4aca;
+
+window {
+    background-color: #F5F5F7;
+    color: @on_surface;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: rgba(250, 249, 254, 0.8); /* surface with opacity */
+    border-right: 1px solid @outline_variant;
+}
+
+.sidebar-title {
+    color: @primary;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.sidebar-subtitle {
+    color: @on_surface_variant;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.sidebar-item {
+    color: @on_surface_variant;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.sidebar-item:hover {
+    background-color: @surface_low;
+}
+
+.sidebar-item.active {
+    background-color: rgba(0, 88, 188, 0.1);
+    color: @primary;
+    font-weight: bold;
+}
+
+/* Header */
+.header {
+    background-color: rgba(250, 249, 254, 0.6);
+    border-bottom: 1px solid @outline_variant;
+    padding: 24px 40px;
+}
+
+.header-title {
+    color: @on_surface;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.header-date {
+    color: @on_surface_variant;
+    background-color: @surface_low;
+    border-radius: 9999px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.header-button {
+    background: transparent;
+    color: @on_surface_variant;
+    border: none;
+    border-radius: 9999px;
+}
+
+.header-button:hover {
+    background-color: @surface_low;
+    color: @on_surface;
+}
+
+.share-button {
+    background-color: rgba(0, 88, 188, 0.05);
+    color: @primary;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.share-button:hover {
+    background-color: rgba(0, 88, 188, 0.1);
+}
+
+.add-limit-button {
+    background-color: @primary;
+    color: @on_primary;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.add-limit-button:hover {
+    background-color: #005bc1;
+}
+
+/* Cards */
+.card {
+    background-color: @surface_lowest;
+    border: 1px solid @outline_variant;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+}
+
+.card-title {
+    color: @on_surface_variant;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.card-title-lg {
+    color: @on_surface;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+/* Total Screen Time */
+.display-text {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: @on_surface;
+}
+
+.trend-text {
+    color: @secondary;
+    font-size: 15px;
+}
+
+.progress-track {
+    background-color: @surface_high;
+    border-radius: 9999px;
+    min-height: 8px;
+}
+
+.progress-fill-primary {
+    background-color: @primary;
+    border-radius: 9999px;
+}
+
+.progress-fill-safari {
+    background-color: #0070eb;
+    border-radius: 9999px;
+}
+
+.progress-fill-tertiary {
+    background-color: @tertiary;
+    border-radius: 9999px;
+}
+
+/* Daily Usage Bar Chart */
+.chart-bar-bg {
+    background-color: rgba(0, 88, 188, 0.2);
+    border-radius: 9999px 9999px 0 0;
+}
+.chart-bar-bg:hover {
+    background-color: rgba(0, 88, 188, 0.4);
+}
+
+.chart-bar-active {
+    background-color: @primary;
+    border-radius: 9999px 9999px 0 0;
+}
+
+.chart-label {
+    color: @on_surface_variant;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Segmented Control */
+.segmented-bg {
+    background-color: @surface_low;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.segmented-active {
+    background-color: @surface_lowest;
+    color: @on_surface;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.segmented-inactive {
+    color: @on_surface_variant;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* App List */
+.app-icon {
+    border-radius: 8px;
+    min-width: 32px;
+    min-height: 32px;
+    color: white;
+}
+
+.app-name {
+    color: @on_surface;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.app-duration {
+    color: @on_surface_variant;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Categories Legend */
+.legend-dot-primary {
+    background-color: @primary;
+    border-radius: 9999px;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+.legend-dot-secondary {
+    background-color: @secondary;
+    border-radius: 9999px;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+.legend-dot-tertiary {
+    background-color: @tertiary;
+    border-radius: 9999px;
+    min-width: 12px;
+    min-height: 12px;
+}
+
+.legend-label {
+    color: @on_surface;
+    font-size: 15px;
+    font-weight: 400;
+}
+
+.legend-value {
+    color: @on_surface_variant;
+    font-size: 13px;
+    font-weight: 500;
+}
