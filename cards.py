@@ -141,6 +141,135 @@ class ChartCard(Gtk.Box):
 
         self.append(chart_area)
 
+import os
+import urllib.request
+import urllib.parse
+import threading
+
+def get_icon_name_for_app(app_name, window_class):
+    app_name_lower = app_name.lower() if app_name else ""
+    window_class_lower = window_class.lower() if window_class else ""
+
+    mapping = {
+        "code": "visual-studio-code",
+        "vs code": "visual-studio-code",
+        "cursor": "cursor",
+        "google chrome": "google-chrome",
+        "chrome": "google-chrome",
+        "firefox": "firefox",
+        "slack": "slack",
+        "discord": "discord",
+        "spotify": "spotify",
+        "youtube": "youtube",
+        "kitty": "kitty",
+        "alacritty": "alacritty",
+        "safari": "safari",
+        "terminal": "utilities-terminal",
+        "settings": "preferences-system"
+    }
+
+    # 1. First check mapping based on app_name (e.g. "YouTube")
+    if app_name_lower in mapping:
+        return mapping[app_name_lower]
+
+    for key, val in mapping.items():
+        if key in app_name_lower:
+            return val
+
+    # 2. Then check system icon theme for app_name
+    try:
+        display = Gdk.Display.get_default()
+        if display:
+            theme = Gtk.IconTheme.get_for_display(display)
+            if app_name and theme.has_icon(app_name_lower):
+                return app_name_lower
+    except Exception:
+        pass
+
+    # 3. Check system icon theme for window_class
+    try:
+        display = Gdk.Display.get_default()
+        if display:
+            theme = Gtk.IconTheme.get_for_display(display)
+            if window_class and theme.has_icon(window_class):
+                return window_class
+            if window_class and theme.has_icon(window_class_lower):
+                return window_class_lower
+    except Exception:
+        pass
+
+    # Check mapping based on window_class as fallback
+    if window_class_lower in mapping:
+        return mapping[window_class_lower]
+
+    # Default fallback
+    return "application-x-executable"
+
+def download_favicon(app_name, filepath, image_widget):
+    domain = f"{app_name.lower().replace(' ', '')}.com"
+    url = f"https://www.google.com/s2/favicons?domain={domain}&sz=64"
+
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        data = urllib.request.urlopen(req).read()
+
+        # Google favicons might return a default globe icon if not found.
+        # We can try to save it anyway, as it's better than nothing,
+        # or we could check the file size (default is usually small and specific).
+        # We will save it if it's > 0 bytes.
+        if data:
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, "wb") as f:
+                f.write(data)
+
+            # Update the UI on the main thread
+            GLib.idle_add(update_image_widget, image_widget, filepath)
+    except Exception as e:
+        print(f"Failed to download icon for {app_name}: {e}")
+
+def update_image_widget(image_widget, filepath):
+    try:
+        image_widget.set_from_file(filepath)
+        image_widget.set_pixel_size(32)
+    except Exception:
+        pass
+    return False
+
+def create_app_icon(app_name, window_class):
+    image_widget = Gtk.Image()
+    image_widget.set_pixel_size(32)
+    image_widget.add_css_class("app-icon")
+
+    # 1. Try to get a native or mapped icon first (high quality)
+    icon_name = get_icon_name_for_app(app_name, window_class)
+
+    # If the icon name is a generic fallback and we have an app_name, try to get a favicon
+    # Or if we want favicons for web apps even if they are in the mapping (like youtube)
+    # The user specifically requested "nutzte die icons die im chrome tab stehen"
+    # So we should prioritize the favicon if the window_class indicates it's a browser, or always try for specific names.
+
+    is_browser = window_class and window_class.lower() in ["google-chrome", "firefox", "brave-browser", "safari", "chromium"]
+
+    if is_browser and app_name:
+        icons_dir = os.path.expanduser("~/.local/share/window_monitor/icons")
+        safe_app_name = "".join([c for c in app_name if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+        filepath = os.path.join(icons_dir, f"{safe_app_name.replace(' ', '_').lower()}.png")
+
+        if os.path.exists(filepath):
+            image_widget.set_from_file(filepath)
+            return image_widget
+        else:
+            # Set fallback while downloading
+            image_widget.set_from_icon_name(icon_name)
+
+            # Start background download
+            threading.Thread(target=download_favicon, args=(app_name, filepath, image_widget), daemon=True).start()
+            return image_widget
+
+    # If not a browser or no app_name, just use the local icon
+    image_widget.set_from_icon_name(icon_name)
+    return image_widget
+
 class AppsCard(Gtk.Box):
     def __init__(self, apps_data):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=24)
@@ -158,20 +287,17 @@ class AppsCard(Gtk.Box):
         colors = ["progress-fill-primary", "progress-fill-safari", "progress-fill-tertiary"]
         bg_colors = ["#000000", "#0070eb", "#4A154B"]
 
-        for i, (app_name, duration) in enumerate(top_apps):
+        for i, app_data in enumerate(top_apps):
+            app_name = app_data[0]
+            duration = app_data[1]
+            window_class = app_data[2] if len(app_data) > 2 else None
+
             app_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
 
             info_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
-            # Mock Icon
-            icon_area = Gtk.DrawingArea()
-            icon_area.set_size_request(32, 32)
-            # Use default args hack to bind loop variable properly
-            def draw_icon(area, cr, width, height, color=bg_colors[i%len(bg_colors)]):
-                cr.set_source_rgba(*[int(color[j:j+2], 16)/255 for j in (1,3,5)], 1.0)
-                cr.rectangle(0, 0, width, height)
-                cr.fill()
-            icon_area.set_draw_func(draw_icon)
+            # System Icon or Downloaded Favicon
+            app_icon = create_app_icon(app_name, window_class)
 
             name_lbl = Gtk.Label(label=app_name)
             name_lbl.add_css_class("app-name")
@@ -185,7 +311,7 @@ class AppsCard(Gtk.Box):
             time_lbl.add_css_class("app-duration")
             time_lbl.set_hexpand(True)
 
-            info_box.append(icon_area)
+            info_box.append(app_icon)
             info_box.append(name_lbl)
             info_box.append(time_lbl)
 

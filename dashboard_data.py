@@ -102,11 +102,14 @@ def get_most_used_apps():
             continue
 
         if app_name not in apps:
-            apps[app_name] = 0.0
-        apps[app_name] += row['duration']
+            apps[app_name] = {'duration': 0.0, 'class': row['class']}
+        apps[app_name]['duration'] += row['duration']
 
     # Sort by duration descending
-    sorted_apps = sorted(apps.items(), key=lambda item: item[1], reverse=True)
+    sorted_apps = []
+    for name, info in sorted(apps.items(), key=lambda item: item[1]['duration'], reverse=True):
+        sorted_apps.append((name, info['duration'], info['class']))
+
     return sorted_apps
 
 def get_categories():
