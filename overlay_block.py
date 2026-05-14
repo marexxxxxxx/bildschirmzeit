@@ -17,12 +17,27 @@ except ValueError:
 from gi.repository import Gtk, GLib, Gdk, Gio, Pango
 
 def get_window_info(title_substring):
+    search_term = title_substring.lower()
     try:
         res = subprocess.run(['hyprctl', 'clients', '-j'], capture_output=True, text=True)
         if res.returncode == 0:
             clients = json.loads(res.stdout)
             for c in clients:
-                if title_substring.lower() in c.get('title', '').lower():
+                title = c.get('title', '').lower()
+                cls = c.get('class', '').lower()
+
+                match = False
+                if search_term == "firefox":
+                    if "firefox" in cls:
+                        match = True
+                elif search_term == "youtube":
+                    if "youtube" in title:
+                        match = True
+                else:
+                    if search_term in title or search_term in cls:
+                        match = True
+
+                if match:
                     at = c.get('at', [0, 0])
                     size = c.get('size', [0, 0])
                     return {
