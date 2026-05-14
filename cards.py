@@ -115,6 +115,8 @@ class ChartCard(Gtk.Box):
         max_val = max(hourly_data.values()) if hourly_data else 1
         if max_val == 0: max_val = 1
 
+        chart_area.set_homogeneous(True)
+
         for i, h in enumerate(labels):
             # Sum data for h, h+1, h+2
             val = hourly_data.get(h, 0) + hourly_data.get(h+1, 0) + hourly_data.get(h+2, 0)
@@ -127,13 +129,19 @@ class ChartCard(Gtk.Box):
             bar = Gtk.Box()
             bar.set_size_request(-1, max(10, int(150 * height_pct)))
 
-            if height_pct == 1.0 and val > 0:
-                bar.add_css_class("chart-bar-active")
-            else:
-                bar.add_css_class("chart-bar-bg")
+            hours = int(val // 3600)
+            mins = int((val % 3600) // 60)
+            dur_str = f"{hours}h {mins}m" if hours > 0 else f"{mins}m"
+            bar.set_tooltip_text(dur_str)
 
             lbl = Gtk.Label(label=display_labels[i])
             lbl.add_css_class("chart-label")
+
+            if height_pct == 1.0 and val > 0:
+                bar.add_css_class("chart-bar-active")
+                lbl.add_css_class("chart-label-active")
+            else:
+                bar.add_css_class("chart-bar-bg")
 
             bar_container.append(bar)
             bar_container.append(lbl)

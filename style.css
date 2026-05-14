@@ -188,12 +188,23 @@ window {
 .chart-bar-active {
     background-color: @primary;
     border-radius: 9999px 9999px 0 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.chart-bar-active:hover {
+    background-color: #005bc1; /* surface-tint from mockup */
 }
 
 .chart-label {
     color: @on_surface_variant;
     font-size: 11px;
     font-weight: 600;
+}
+
+.chart-label-active {
+    color: @on_surface_variant;
+    font-size: 11px;
+    font-weight: 700;
 }
 
 /* Segmented Control */
