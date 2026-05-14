@@ -36,7 +36,14 @@ def block_window(title, image_path=None):
 
     try:
         # Die Umgebungsvariablen müssen weitergegeben werden, speziell WAYLAND_DISPLAY etc.
-        proc = subprocess.Popen(cmd, env=os.environ.copy())
+        env = os.environ.copy()
+
+        # Set LD_PRELOAD for Gtk4LayerShell if the library exists
+        lib_path = '/usr/lib/libgtk4-layer-shell.so'
+        if os.path.exists(lib_path):
+            env['LD_PRELOAD'] = lib_path
+
+        proc = subprocess.Popen(cmd, env=env)
 
         with open(pid_file, "w") as f:
             f.write(str(proc.pid))
