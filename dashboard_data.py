@@ -1,7 +1,6 @@
 import sqlite3
 import os
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 
 DB_PATH = os.path.expanduser("~/.local/share/window_monitor/windows.db")
 
@@ -19,15 +18,10 @@ CATEGORY_MAP = {
 }
 
 def get_today_bounds():
-    tz = ZoneInfo("Europe/Zurich")
-    now = datetime.now(tz)
+    now = datetime.now(timezone.utc)
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-
-    # Store in DB as UTC ISO format, so we need to convert boundaries to UTC
-    start_utc = start_of_day.astimezone(timezone.utc)
-    end_utc = end_of_day.astimezone(timezone.utc)
-    return start_utc.isoformat(), end_utc.isoformat()
+    return start_of_day.isoformat(), end_of_day.isoformat()
 
 def fetch_today_data():
     if not os.path.exists(DB_PATH):
@@ -37,38 +31,16 @@ def fetch_today_data():
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    start_str, end_str = get_today_bounds()
+    start, end = get_today_bounds()
 
-    # Get events that started before end of today AND ended after start of today
     cursor.execute('''
         SELECT * FROM window_events
-        WHERE timestamp <= ? AND end_timestamp >= ? AND duration IS NOT NULL
-    ''', (end_str, start_str))
+        WHERE timestamp >= ? AND timestamp <= ? AND duration IS NOT NULL
+    ''', (start, end))
 
     rows = cursor.fetchall()
     conn.close()
-
-    start_dt = datetime.fromisoformat(start_str)
-    end_dt = datetime.fromisoformat(end_str)
-
-    processed_rows = []
-    for row in rows:
-        row_dict = dict(row)
-        event_start = datetime.fromisoformat(row_dict['timestamp'])
-        event_end = datetime.fromisoformat(row_dict['end_timestamp'])
-
-        # Calculate overlap
-        overlap_start = max(event_start, start_dt)
-        overlap_end = min(event_end, end_dt)
-
-        overlap_duration = (overlap_end - overlap_start).total_seconds()
-        if overlap_duration > 0:
-            row_dict['duration'] = overlap_duration
-            # Also update timestamp so it falls inside today's hours if it started yesterday
-            row_dict['timestamp'] = overlap_start.isoformat()
-            processed_rows.append(row_dict)
-
-    return processed_rows
+    return rows
 
 def get_total_screen_time():
     data = fetch_today_data()
