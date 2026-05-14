@@ -141,8 +141,24 @@ class ChartCard(Gtk.Box):
 
         self.append(chart_area)
 
-def get_icon_name_for_app(app_name):
-    app_name_lower = app_name.lower()
+def get_icon_name_for_app(app_name, window_class):
+    # 1. First, check if the system icon theme has an exact match for the window class.
+    # The window class is often the exact name of the desktop file (e.g. google-chrome, code, spotify)
+    try:
+        display = Gdk.Display.get_default()
+        if display:
+            theme = Gtk.IconTheme.get_for_display(display)
+            if window_class and theme.has_icon(window_class):
+                return window_class
+            if window_class and theme.has_icon(window_class.lower()):
+                return window_class.lower()
+            if app_name and theme.has_icon(app_name.lower()):
+                return app_name.lower()
+    except Exception:
+        pass
+
+    # 2. Fallback to the manual mapping requested by the user
+    app_name_lower = app_name.lower() if app_name else ""
 
     mapping = {
         "code": "visual-studio-code",
@@ -191,13 +207,17 @@ class AppsCard(Gtk.Box):
         colors = ["progress-fill-primary", "progress-fill-safari", "progress-fill-tertiary"]
         bg_colors = ["#000000", "#0070eb", "#4A154B"]
 
-        for i, (app_name, duration) in enumerate(top_apps):
+        for i, app_data in enumerate(top_apps):
+            app_name = app_data[0]
+            duration = app_data[1]
+            window_class = app_data[2] if len(app_data) > 2 else None
+
             app_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
 
             info_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
             # System Icon
-            icon_name = get_icon_name_for_app(app_name)
+            icon_name = get_icon_name_for_app(app_name, window_class)
             app_icon = Gtk.Image.new_from_icon_name(icon_name)
             app_icon.set_pixel_size(32)
             app_icon.add_css_class("app-icon")
