@@ -280,9 +280,16 @@ class AppsCard(Gtk.Box):
         title.add_css_class("card-title-lg")
         self.append(title)
 
-        # Take top 3 apps
-        top_apps = apps_data[:3]
+        # Filter apps with duration > 120 seconds
+        top_apps = [app for app in apps_data if app[1] > 120]
+
+        if not top_apps:
+            self.set_visible(False)
+            return
+
         max_duration = top_apps[0][1] if top_apps else 1
+
+        list_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
 
         colors = ["progress-fill-primary", "progress-fill-safari", "progress-fill-tertiary"]
         bg_colors = ["#000000", "#0070eb", "#4A154B"]
@@ -331,7 +338,15 @@ class AppsCard(Gtk.Box):
             track_overlay.add_overlay(fill)
 
             app_box.append(track_overlay)
-            self.append(app_box)
+            list_box.append(app_box)
+
+        scrolled_window = Gtk.ScrolledWindow()
+        scrolled_window.set_child(list_box)
+        scrolled_window.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        scrolled_window.set_vexpand(True)
+        scrolled_window.set_min_content_height(200)
+
+        self.append(scrolled_window)
 
 class CategoriesCard(Gtk.Box):
     def __init__(self, categories_data):
