@@ -141,6 +141,39 @@ class ChartCard(Gtk.Box):
 
         self.append(chart_area)
 
+def get_icon_name_for_app(app_name):
+    app_name_lower = app_name.lower()
+
+    mapping = {
+        "code": "visual-studio-code",
+        "vs code": "visual-studio-code",
+        "cursor": "cursor",
+        "google chrome": "google-chrome",
+        "chrome": "google-chrome",
+        "firefox": "firefox",
+        "slack": "slack",
+        "discord": "discord",
+        "spotify": "spotify",
+        "youtube": "youtube",
+        "kitty": "kitty",
+        "alacritty": "alacritty",
+        "safari": "safari",
+        "terminal": "utilities-terminal",
+        "settings": "preferences-system"
+    }
+
+    # Check if exact match exists
+    if app_name_lower in mapping:
+        return mapping[app_name_lower]
+
+    # Check if any part of the app name matches
+    for key, val in mapping.items():
+        if key in app_name_lower:
+            return val
+
+    # Default fallback
+    return "application-x-executable"
+
 class AppsCard(Gtk.Box):
     def __init__(self, apps_data):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=24)
@@ -163,15 +196,14 @@ class AppsCard(Gtk.Box):
 
             info_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
-            # Mock Icon
-            icon_area = Gtk.DrawingArea()
-            icon_area.set_size_request(32, 32)
-            # Use default args hack to bind loop variable properly
-            def draw_icon(area, cr, width, height, color=bg_colors[i%len(bg_colors)]):
-                cr.set_source_rgba(*[int(color[j:j+2], 16)/255 for j in (1,3,5)], 1.0)
-                cr.rectangle(0, 0, width, height)
-                cr.fill()
-            icon_area.set_draw_func(draw_icon)
+            # System Icon
+            icon_name = get_icon_name_for_app(app_name)
+            app_icon = Gtk.Image.new_from_icon_name(icon_name)
+            app_icon.set_pixel_size(32)
+            app_icon.add_css_class("app-icon")
+
+            # Fallback handling in UI logic - handled by get_icon_name_for_app mostly
+            # GTK image automatically falls back to 'image-missing' if icon not found.
 
             name_lbl = Gtk.Label(label=app_name)
             name_lbl.add_css_class("app-name")
@@ -185,7 +217,7 @@ class AppsCard(Gtk.Box):
             time_lbl.add_css_class("app-duration")
             time_lbl.set_hexpand(True)
 
-            info_box.append(icon_area)
+            info_box.append(app_icon)
             info_box.append(name_lbl)
             info_box.append(time_lbl)
 
