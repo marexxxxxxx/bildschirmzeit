@@ -66,6 +66,7 @@ class ScreenTimeWindow(Gtk.ApplicationWindow):
     def build_dashboard(self):
         # Fetch Data
         total_time = dashboard_data.get_total_screen_time()
+        yesterday_time = dashboard_data.get_yesterday_total_screen_time()
         weekly_data = dashboard_data.get_weekly_usage_by_day_and_category()
         apps_data = dashboard_data.get_most_used_apps()
         categories_data = dashboard_data.get_categories()
@@ -74,7 +75,7 @@ class ScreenTimeWindow(Gtk.ApplicationWindow):
         top_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
         top_row.set_homogeneous(False)
 
-        summary = SummaryCard(total_time)
+        summary = SummaryCard(total_time, yesterday_time)
         summary.set_size_request(300, -1)
 
         chart = ChartCard(weekly_data)

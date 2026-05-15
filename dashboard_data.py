@@ -19,10 +19,19 @@ CATEGORY_MAP = {
 }
 
 def get_today_bounds():
-    now = datetime.now(timezone.utc)
+    zurich = ZoneInfo("Europe/Zurich")
+    now = datetime.now(zurich)
     start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    end_of_day = now.replace(hour=23, minute=59, second=59, microsecond=999999)
-    return start_of_day.isoformat(), end_of_day.isoformat()
+    end_of_day = start_of_day + timedelta(hours=23, minutes=59, seconds=59, microseconds=999999)
+    return start_of_day.astimezone(timezone.utc).isoformat(), end_of_day.astimezone(timezone.utc).isoformat()
+
+def get_yesterday_bounds():
+    zurich = ZoneInfo("Europe/Zurich")
+    now = datetime.now(zurich)
+    start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    start_of_yesterday = start_of_today - timedelta(days=1)
+    end_of_yesterday = start_of_yesterday + timedelta(hours=23, minutes=59, seconds=59, microseconds=999999)
+    return start_of_yesterday.astimezone(timezone.utc).isoformat(), end_of_yesterday.astimezone(timezone.utc).isoformat()
 
 def fetch_today_data():
     if not os.path.exists(DB_PATH):
@@ -45,6 +54,30 @@ def fetch_today_data():
 
 def get_total_screen_time():
     data = fetch_today_data()
+    total_seconds = sum(row['duration'] for row in data if row['duration'])
+    return total_seconds
+
+def fetch_yesterday_data():
+    if not os.path.exists(DB_PATH):
+        return []
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    start, end = get_yesterday_bounds()
+
+    cursor.execute('''
+        SELECT * FROM window_events
+        WHERE timestamp >= ? AND timestamp <= ? AND duration IS NOT NULL
+    ''', (start, end))
+
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def get_yesterday_total_screen_time():
+    data = fetch_yesterday_data()
     total_seconds = sum(row['duration'] for row in data if row['duration'])
     return total_seconds
 

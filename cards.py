@@ -4,7 +4,7 @@ from gi.repository import Gtk, Gdk, Pango, GLib
 import math
 
 class SummaryCard(Gtk.Box):
-    def __init__(self, total_seconds):
+    def __init__(self, total_seconds, yesterday_seconds):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.add_css_class("card")
         self.set_hexpand(True)
@@ -29,7 +29,22 @@ class SummaryCard(Gtk.Box):
         time_lbl.add_css_class("display-text")
         top_box.append(time_lbl)
 
-        trend_lbl = Gtk.Label(label="↓ 12% from yesterday", xalign=0)
+        # Calculate trend
+        if yesterday_seconds == 0 and total_seconds == 0:
+            trend_text = "0% from yesterday"
+        elif yesterday_seconds == 0:
+            trend_text = "↑ 100% from yesterday"
+        else:
+            diff = total_seconds - yesterday_seconds
+            pct = abs(diff) / yesterday_seconds * 100
+            if diff > 0:
+                trend_text = f"↑ {int(pct)}% from yesterday"
+            elif diff < 0:
+                trend_text = f"↓ {int(pct)}% from yesterday"
+            else:
+                trend_text = "0% from yesterday"
+
+        trend_lbl = Gtk.Label(label=trend_text, xalign=0)
         trend_lbl.add_css_class("trend-text")
         top_box.append(trend_lbl)
 
