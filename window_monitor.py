@@ -41,6 +41,21 @@ def init_db():
             progress INTEGER
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE,
+            color TEXT,
+            is_productive BOOLEAN
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS category_mapping (
+            app_name TEXT PRIMARY KEY,
+            category_id INTEGER,
+            FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
+        )
+    ''')
     conn.commit()
     return conn
 
