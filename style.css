@@ -177,23 +177,50 @@ window {
 }
 
 /* Daily Usage Bar Chart */
-.chart-bar-bg {
-    background-color: rgba(0, 88, 188, 0.2);
-    border-radius: 9999px 9999px 0 0;
-}
-.chart-bar-bg:hover {
-    background-color: rgba(0, 88, 188, 0.4);
+.stacked-bar-container {
+    border-radius: 6px;
 }
 
-.chart-bar-active {
-    background-color: @primary;
-    border-radius: 9999px 9999px 0 0;
+.chart-bar-productivity {
+    background-color: #2563EB;
+}
+
+.chart-bar-communication {
+    background-color: #059669;
+}
+
+.chart-bar-entertainment {
+    background-color: #7C3AED;
+}
+
+.chart-bar-other {
+    background-color: #94A3B8;
 }
 
 .chart-label {
     color: @on_surface_variant;
     font-size: 11px;
     font-weight: 600;
+}
+
+.chart-grid-row {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.y-axis-label {
+    color: rgba(0, 0, 0, 0.25);
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.legend-dot {
+    border-radius: 50%;
+}
+
+.legend-label {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 10px;
+    font-weight: 700;
 }
 
 /* Segmented Control */

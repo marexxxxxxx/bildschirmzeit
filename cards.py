@@ -69,7 +69,7 @@ class SummaryCard(Gtk.Box):
         self.append(bottom_box)
 
 class ChartCard(Gtk.Box):
-    def __init__(self, hourly_data):
+    def __init__(self, weekly_data):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.add_css_class("card")
         self.set_hexpand(True)
@@ -84,13 +84,13 @@ class ChartCard(Gtk.Box):
         controls.set_halign(Gtk.Align.END)
         controls.set_hexpand(True)
         btn_day = Gtk.Label(label="Day")
-        btn_day.add_css_class("segmented-active")
+        btn_day.add_css_class("segmented-inactive")
         btn_day.set_margin_start(16)
         btn_day.set_margin_end(16)
         btn_day.set_margin_top(4)
         btn_day.set_margin_bottom(4)
         btn_week = Gtk.Label(label="Week")
-        btn_week.add_css_class("segmented-inactive")
+        btn_week.add_css_class("segmented-active")
         btn_week.set_margin_start(16)
         btn_week.set_margin_end(16)
 
@@ -101,45 +101,174 @@ class ChartCard(Gtk.Box):
         header.append(controls)
         self.append(header)
 
-        # Chart Area
-        chart_area = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
-        chart_area.set_vexpand(True)
-        chart_area.set_margin_top(24)
-        chart_area.set_valign(Gtk.Align.END)
-        chart_area.set_size_request(-1, 200)
+        # Chart Grid Container
+        chart_grid_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        chart_grid_container.set_vexpand(True)
+        chart_grid_container.set_margin_top(24)
+        chart_grid_container.set_margin_bottom(16)
 
-        # We need to map 6, 9, 12, 15 (3PM), 18 (6PM), 21 (9PM)
-        labels = [6, 9, 12, 15, 18, 21]
-        display_labels = ["6 AM", "9 AM", "12 PM", "3 PM", "6 PM", "9 PM"]
+        # For a 200px tall chart representing 8h, we want 5 labels at 0, 50, 100, 150, 200 px.
+        # We can achieve this precise positioning using a vertical box with spacing or an overlay.
+        # Let's use a standard VBox with 4 homogeneous expanded sections for both the labels and grid.
 
-        max_val = max(hourly_data.values()) if hourly_data else 1
-        if max_val == 0: max_val = 1
+        # Left Y-Axis labels
+        y_axis_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        y_axis_box.set_size_request(24, 200)
+        y_axis_labels = ["8h", "6h", "4h", "2h", "0h"]
 
-        for i, h in enumerate(labels):
-            # Sum data for h, h+1, h+2
-            val = hourly_data.get(h, 0) + hourly_data.get(h+1, 0) + hourly_data.get(h+2, 0)
-            height_pct = val / max_val
+        for i, lbl_text in enumerate(y_axis_labels):
+            lbl = Gtk.Label(label=lbl_text, xalign=1)
+            lbl.add_css_class("y-axis-label")
+            # The top label aligns to top, bottom to bottom, rest inside expanded space
+            if i == 0:
+                y_axis_box.append(lbl)
+            else:
+                # Create a filler box that pushes the next label down
+                filler = Gtk.Box()
+                filler.set_vexpand(True)
+                y_axis_box.append(filler)
+                y_axis_box.append(lbl)
+
+        chart_grid_container.append(y_axis_box)
+
+        # Right Chart Area Overlay
+        chart_overlay = Gtk.Overlay()
+        chart_overlay.set_hexpand(True)
+        chart_overlay.set_size_request(-1, 200)
+
+        # 1. Background Grid Lines (dividing height into 4 sections)
+        grid_lines_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+        # Top line
+        top_line = Gtk.Box()
+        top_line.set_hexpand(True)
+        top_line.add_css_class("chart-grid-row")
+        grid_lines_box.append(top_line)
+
+        # Next 3 lines with expanders
+        for i in range(3):
+            filler = Gtk.Box()
+            filler.set_vexpand(True)
+            grid_lines_box.append(filler)
+
+            line = Gtk.Box()
+            line.set_hexpand(True)
+            line.add_css_class("chart-grid-row")
+            grid_lines_box.append(line)
+
+        # Bottom line
+        filler = Gtk.Box()
+        filler.set_vexpand(True)
+        grid_lines_box.append(filler)
+
+        bottom_line = Gtk.Box()
+        bottom_line.set_hexpand(True)
+        bottom_line.add_css_class("chart-grid-row")
+        grid_lines_box.append(bottom_line)
+
+        chart_overlay.set_child(grid_lines_box)
+
+        # 2. Foreground Bars
+        chart_bars_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        chart_bars_box.set_homogeneous(True)
+
+        display_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+        # Determine maximum total time for any day to scale appropriately. Base 8 hours (28800 seconds).
+        max_total_sec = 8 * 3600
+        for i in range(7):
+            day_data = weekly_data.get(i, {})
+            day_total = sum(day_data.values())
+            if day_total > max_total_sec:
+                max_total_sec = day_total
+
+        if max_total_sec == 0:
+            max_total_sec = 1
+
+        chart_height = 200
+
+        for i in range(7):
+            day_data = weekly_data.get(i, {})
 
             bar_container = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
             bar_container.set_valign(Gtk.Align.END)
+            bar_container.set_halign(Gtk.Align.CENTER)
             bar_container.set_hexpand(True)
 
-            bar = Gtk.Box()
-            bar.set_size_request(-1, max(10, int(150 * height_pct)))
+            # Stacked Bar
+            stacked_bar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            stacked_bar.add_css_class("stacked-bar-container")
+            stacked_bar.set_size_request(24, -1) # Width of the bar
 
-            if height_pct == 1.0 and val > 0:
-                bar.add_css_class("chart-bar-active")
-            else:
-                bar.add_css_class("chart-bar-bg")
+            # The order in VBox from top to bottom is important.
+            # Visually, we want Productivity at bottom, Communication middle, Entertainment top.
+            # So in a VBox, we add Entertainment first, then Communication, then Productivity.
+            categories_order = [
+                ("Entertainment", "chart-bar-entertainment"),
+                ("Communication", "chart-bar-communication"),
+                ("Productivity", "chart-bar-productivity")
+            ]
+
+            day_total = sum(day_data.values())
+
+            for cat_name, css_class in categories_order:
+                val = day_data.get(cat_name, 0)
+                if val > 0:
+                    height_pct = val / max_total_sec
+                    segment_height = max(4, int(chart_height * height_pct)) # Give minimum height
+                    segment = Gtk.Box()
+                    segment.add_css_class(css_class)
+                    segment.set_size_request(-1, segment_height)
+                    stacked_bar.append(segment)
+
+            # If no data, add an empty placeholder to keep layout consistent
+            if day_total == 0:
+                empty_segment = Gtk.Box()
+                empty_segment.set_size_request(-1, 0)
+                stacked_bar.append(empty_segment)
 
             lbl = Gtk.Label(label=display_labels[i])
             lbl.add_css_class("chart-label")
+            lbl.set_margin_top(8)
 
-            bar_container.append(bar)
+            bar_container.append(stacked_bar)
             bar_container.append(lbl)
-            chart_area.append(bar_container)
 
-        self.append(chart_area)
+            chart_bars_box.append(bar_container)
+
+        chart_overlay.add_overlay(chart_bars_box)
+
+        chart_grid_container.append(chart_overlay)
+        self.append(chart_grid_container)
+
+        # Legend
+        legend_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
+        legend_box.set_halign(Gtk.Align.CENTER)
+        legend_box.set_margin_top(8)
+
+        legend_items = [
+            ("Productivity", "chart-bar-productivity"),
+            ("Communication", "chart-bar-communication"),
+            ("Entertainment", "chart-bar-entertainment")
+        ]
+
+        for name, css_class in legend_items:
+            item_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            item_box.set_valign(Gtk.Align.CENTER)
+
+            dot = Gtk.Box()
+            dot.add_css_class("legend-dot")
+            dot.add_css_class(css_class)
+            dot.set_size_request(10, 10)
+
+            lbl = Gtk.Label(label=name)
+            lbl.add_css_class("legend-label")
+
+            item_box.append(dot)
+            item_box.append(lbl)
+            legend_box.append(item_box)
+
+        self.append(legend_box)
 
 import os
 import urllib.request

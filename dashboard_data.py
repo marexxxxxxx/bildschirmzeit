@@ -1,6 +1,7 @@
 import sqlite3
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 
 DB_PATH = os.path.expanduser("~/.local/share/window_monitor/windows.db")
 
@@ -47,21 +48,64 @@ def get_total_screen_time():
     total_seconds = sum(row['duration'] for row in data if row['duration'])
     return total_seconds
 
-def get_daily_usage_by_hour():
-    data = fetch_today_data()
-    # Initialize hours from 6 to 21 (9 PM)
-    hours = {h: 0.0 for h in range(6, 22)}
+def get_week_bounds():
+    zurich = ZoneInfo("Europe/Zurich")
+    now = datetime.now(zurich)
+    start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    current_weekday = start_of_today.weekday()
+    start_of_week = start_of_today - timedelta(days=current_weekday)
+    end_of_week = start_of_week + timedelta(days=6, hours=23, minutes=59, seconds=59, microseconds=999999)
+    return start_of_week.astimezone(timezone.utc).isoformat(), end_of_week.astimezone(timezone.utc).isoformat()
+
+def fetch_week_data():
+    if not os.path.exists(DB_PATH):
+        return []
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    start, end = get_week_bounds()
+
+    cursor.execute('''
+        SELECT * FROM window_events
+        WHERE timestamp >= ? AND timestamp <= ? AND duration IS NOT NULL
+    ''', (start, end))
+
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+
+def get_weekly_usage_by_day_and_category():
+    data = fetch_week_data()
+    # Initialize days 0 (Monday) to 6 (Sunday)
+    weekly_data = {
+        i: {"Productivity": 0.0, "Communication": 0.0, "Entertainment": 0.0, "Other": 0.0}
+        for i in range(7)
+    }
+
+    zurich = ZoneInfo("Europe/Zurich")
 
     for row in data:
         try:
             dt = datetime.fromisoformat(row['timestamp'])
-            hour = dt.hour
-            if hour in hours:
-                hours[hour] += row['duration']
+            # Convert UTC DB timestamp to Zurich time to get correct weekday
+            dt_zurich = dt.astimezone(zurich)
+            weekday = dt_zurich.weekday()
+
+            app_name = row['app'] if row['app'] else row['class']
+            if not app_name:
+                continue
+
+            duration = row['duration']
+            cat = CATEGORY_MAP.get(app_name, "Other")
+
+            if weekday in weekly_data:
+                weekly_data[weekday][cat] += duration
         except Exception:
             pass
 
-    return hours
+    return weekly_data
 
 def get_most_used_apps():
     data = fetch_today_data()
@@ -112,6 +156,6 @@ def get_categories():
 
 if __name__ == "__main__":
     print(f"Total: {get_total_screen_time()}s")
-    print(f"Daily Usage: {get_daily_usage_by_hour()}")
+    print(f"Weekly Usage: {get_weekly_usage_by_day_and_category()}")
     print(f"Most Used: {get_most_used_apps()}")
     print(f"Categories: {get_categories()}")
