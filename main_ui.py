@@ -3,7 +3,7 @@ import gi
 gi.require_version('Gtk', '4.0')
 from gi.repository import Gtk, Gdk, GLib
 import dashboard_data
-from cards import SummaryCard, ChartCard, AppsCard, CategoriesCard
+from cards import SummaryCard, ChartCard, AppsCard, CategoriesCard, ProductivityScoreCard, WorkVsLeisureCard, ProductivityCategoriesCard, RecentDeepWorkCard
 
 class ScreenTimeWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
@@ -71,11 +71,19 @@ class ScreenTimeWindow(Gtk.ApplicationWindow):
         self.overview_label.remove_css_class("active")
         self.prod_label.remove_css_class("active")
 
+        # Hide extra header buttons by default
+        self.create_category_btn.set_visible(False)
+        self.delete_category_btn.set_visible(False)
+        self.header_tools_box.set_visible(False)
+
         if view_name == "overview":
             self.overview_label.add_css_class("active")
             self.refresh_dashboard()
         elif view_name == "prod_tracker":
             self.prod_label.add_css_class("active")
+            self.create_category_btn.set_visible(True)
+            self.delete_category_btn.set_visible(True)
+            self.header_tools_box.set_visible(True)
             self.build_prod_tracker_view()
         elif view_name == "create_category":
             self.prod_label.add_css_class("active")
@@ -112,88 +120,35 @@ class ScreenTimeWindow(Gtk.ApplicationWindow):
         self.prod_tracker_box.set_margin_end(40)
         self.prod_tracker_box.set_spacing(24)
 
-        # Header area for Productivity Tracker
-        header_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        title = Gtk.Label(label="Manage Categories")
-        title.add_css_class("headline-lg")
-        title.set_halign(Gtk.Align.START)
+        # Build 2x2 Grid Layout
 
-        add_btn = Gtk.Button(label="Add Category")
-        add_btn.add_css_class("primary-button")
-        add_btn.set_halign(Gtk.Align.END)
-        add_btn.set_hexpand(True)
-        add_btn.connect("clicked", lambda x: self.switch_to_view("create_category", "Create Category"))
+        # Top Row
+        top_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
+        top_row.set_homogeneous(False)
 
-        header_box.append(title)
-        header_box.append(add_btn)
-        self.prod_tracker_box.append(header_box)
+        score_card = ProductivityScoreCard(84, 5 * 3600 + 20 * 60) # 84%, 5h 20m focus time
+        score_card.set_size_request(300, -1)
 
-        # List of Categories
-        list_box = Gtk.ListBox()
-        list_box.add_css_class("card")
-        list_box.set_selection_mode(Gtk.SelectionMode.NONE)
+        chart_card = WorkVsLeisureCard(None)
 
-        categories = dashboard_data.get_all_categories()
+        top_row.append(score_card)
+        top_row.append(chart_card)
 
-        if not categories:
-            empty = Gtk.Label(label="No categories found.")
-            empty.set_margin_top(20)
-            empty.set_margin_bottom(20)
-            list_box.append(empty)
+        self.prod_tracker_box.append(top_row)
 
-        for cat in categories:
-            row = Gtk.ListBoxRow()
-            row_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
-            row_box.set_margin_top(12)
-            row_box.set_margin_bottom(12)
-            row_box.set_margin_start(16)
-            row_box.set_margin_end(16)
+        # Bottom Row
+        bottom_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=24)
+        bottom_row.set_homogeneous(True)
 
-            # Color dot
-            color_dot = Gtk.DrawingArea()
-            color_dot.set_size_request(16, 16)
-            color_dot.set_valign(Gtk.Align.CENTER)
-            def draw_dot(area, cr, width, height, c=cat['color']):
-                # parse hex color
-                r = int(c[1:3], 16) / 255.0
-                g = int(c[3:5], 16) / 255.0
-                b = int(c[5:7], 16) / 255.0
-                cr.arc(width/2, height/2, min(width, height)/2, 0, 2*3.14159)
-                cr.set_source_rgb(r, g, b)
-                cr.fill()
-            color_dot.set_draw_func(draw_dot)
+        categories_data = [] # fetch categories mapping here if needed, passing empty uses mock
+        cat_card = ProductivityCategoriesCard(categories_data)
 
-            name_label = Gtk.Label(label=cat['name'])
-            name_label.set_halign(Gtk.Align.START)
-            name_label.set_hexpand(True)
+        deep_work_card = RecentDeepWorkCard()
 
-            prod_label = Gtk.Label(label="Productive" if cat['is_productive'] else "Unproductive")
-            prod_label.add_css_class("label-sm")
-            prod_label.add_css_class("text-on-surface-variant")
-            prod_label.set_halign(Gtk.Align.END)
-            prod_label.set_valign(Gtk.Align.CENTER)
+        bottom_row.append(cat_card)
+        bottom_row.append(deep_work_card)
 
-            del_btn = Gtk.Button()
-            del_btn.set_icon_name("user-trash-symbolic")
-            del_btn.add_css_class("icon-button")
-            del_btn.add_css_class("destructive")
-            del_btn.set_valign(Gtk.Align.CENTER)
-
-            # delete handler
-            def on_delete(btn, cat_id=cat['id']):
-                dashboard_data.delete_category(cat_id)
-                self.build_prod_tracker_view() # reload
-
-            del_btn.connect("clicked", on_delete)
-
-            row_box.append(color_dot)
-            row_box.append(name_label)
-            row_box.append(prod_label)
-            row_box.append(del_btn)
-            row.set_child(row_box)
-            list_box.append(row)
-
-        self.prod_tracker_box.append(list_box)
+        self.prod_tracker_box.append(bottom_row)
 
     def build_create_category_view(self):
         # Clear existing children
@@ -512,23 +467,59 @@ class ScreenTimeWindow(Gtk.ApplicationWindow):
         left_box.append(self.header_title_label)
         left_box.append(date_badge)
 
-        right_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
-        right_box.set_halign(Gtk.Align.END)
-        right_box.set_hexpand(True)
+        self.header_right_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        self.header_right_box.set_halign(Gtk.Align.END)
+        self.header_right_box.set_hexpand(True)
 
-        share_btn = Gtk.Button(label="Share")
-        share_btn.add_css_class("share-button")
-        share_btn.set_valign(Gtk.Align.CENTER)
+        # Standard header buttons
+        self.share_btn = Gtk.Button(label="Share")
+        self.share_btn.add_css_class("share-button")
+        self.share_btn.set_valign(Gtk.Align.CENTER)
 
-        limit_btn = Gtk.Button(label="Add Limit")
-        limit_btn.add_css_class("add-limit-button")
-        limit_btn.set_valign(Gtk.Align.CENTER)
+        self.limit_btn = Gtk.Button(label="Add Limit")
+        self.limit_btn.add_css_class("add-limit-button")
+        self.limit_btn.set_valign(Gtk.Align.CENTER)
 
-        right_box.append(share_btn)
-        right_box.append(limit_btn)
+        # Productivity tracker specific buttons
+        self.create_category_btn = Gtk.Button(label="Create Category")
+        self.create_category_btn.add_css_class("primary-button")
+        self.create_category_btn.set_valign(Gtk.Align.CENTER)
+        self.create_category_btn.connect("clicked", lambda x: self.switch_to_view("create_category", "Create Category"))
+        self.create_category_btn.set_visible(False)
+
+        self.delete_category_btn = Gtk.Button(label="Delete Category")
+        self.delete_category_btn.add_css_class("secondary-button")
+        self.delete_category_btn.add_css_class("outline-btn")
+        self.delete_category_btn.set_valign(Gtk.Align.CENTER)
+        self.delete_category_btn.set_visible(False)
+
+        self.header_right_box.append(self.share_btn)
+        self.header_right_box.append(self.create_category_btn)
+        self.header_right_box.append(self.delete_category_btn)
+        self.header_right_box.append(self.limit_btn)
 
         header.append(left_box)
-        header.append(right_box)
+        header.append(self.header_right_box)
+
+        # Add a placeholder box for "header action tools" like calendar, filters as seen in screenshot
+        self.header_tools_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        self.header_tools_box.set_valign(Gtk.Align.CENTER)
+
+        cal_btn = Gtk.Button()
+        cal_btn.set_icon_name("x-office-calendar-symbolic")
+        cal_btn.add_css_class("icon-button")
+
+        filter_btn = Gtk.Button()
+        filter_btn.set_icon_name("view-filter-symbolic")
+        filter_btn.add_css_class("icon-button")
+
+        self.header_tools_box.append(cal_btn)
+        self.header_tools_box.append(filter_btn)
+
+        # Insert it before the main right box, but keep it hidden by default
+        self.header_tools_box.set_visible(False)
+        left_box.append(self.header_tools_box)
+
         return header
 
 class ScreenTimeApp(Gtk.Application):

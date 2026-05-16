@@ -564,3 +564,349 @@ class CategoriesCard(Gtk.Box):
             cr.stroke()
 
             current_angle += angle
+
+class ProductivityScoreCard(Gtk.Box):
+    def __init__(self, score_pct, focus_seconds):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
+        self.add_css_class("card")
+        self.set_hexpand(True)
+        self.set_vexpand(True)
+
+        title = Gtk.Label(label="PRODUCTIVITY SCORE", xalign=0)
+        title.add_css_class("label-sm")
+        self.append(title)
+
+        score_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        score_box.set_margin_top(8)
+
+        score_lbl = Gtk.Label(label=f"{int(score_pct)}%", xalign=0)
+        score_lbl.add_css_class("display-text")
+        score_lbl.set_name("productivity-score-text")
+        score_box.append(score_lbl)
+
+        trend = Gtk.Label(label="↑ +5%")
+        trend.add_css_class("trend-text-positive")
+        trend.set_valign(Gtk.Align.CENTER)
+
+        # Add background to trend
+        trend_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        trend_box.add_css_class("trend-badge-positive")
+        trend_box.set_valign(Gtk.Align.CENTER)
+        trend_box.append(trend)
+
+        score_box.append(trend_box)
+        self.append(score_box)
+
+        spacer = Gtk.Box()
+        spacer.set_vexpand(True)
+        self.append(spacer)
+
+        focus_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        focus_box.set_margin_bottom(8)
+
+        focus_title = Gtk.Label(label="Focus Time", xalign=0)
+        focus_title.add_css_class("card-title")
+
+        hours = focus_seconds // 3600
+        mins = (focus_seconds % 3600) // 60
+        focus_time = Gtk.Label(label=f"{int(hours)}h {int(mins)}m", xalign=1)
+        focus_time.add_css_class("card-title")
+        focus_time.set_hexpand(True)
+
+        focus_box.append(focus_title)
+        focus_box.append(focus_time)
+        self.append(focus_box)
+
+        track = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        track.add_css_class("progress-track")
+        track.set_size_request(-1, 8)
+
+        fill = Gtk.Box()
+        fill.add_css_class("progress-fill-primary")
+        fill.set_size_request(-1, 8)
+        # Mock focus time progress roughly 75%
+        fill.set_hexpand(False)
+        fill.set_halign(Gtk.Align.START)
+        fill.set_size_request(150, 8)
+
+        track.append(fill)
+        self.append(track)
+
+
+class WorkVsLeisureCard(Gtk.Box):
+    def __init__(self, weekly_data):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL)
+        self.add_css_class("card")
+        self.set_hexpand(True)
+        self.set_vexpand(True)
+        self.set_size_request(600, -1)
+
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+
+        title = Gtk.Label(label="Work vs. Leisure", xalign=0)
+        title.add_css_class("card-title-lg")
+        header.append(title)
+
+        # Legend
+        legend_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        legend_box.set_halign(Gtk.Align.END)
+        legend_box.set_hexpand(True)
+
+        legend_items = [
+            ("Productive", "legend-dot-primary"),
+            ("Neutral", "legend-dot-neutral"),
+            ("Leisure", "legend-dot-tertiary")
+        ]
+
+        for name, css_class in legend_items:
+            item = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+            item.set_valign(Gtk.Align.CENTER)
+            dot = Gtk.Box()
+            dot.set_size_request(10, 10)
+            dot.add_css_class("legend-dot")
+            dot.add_css_class(css_class)
+            lbl = Gtk.Label(label=name)
+            lbl.add_css_class("legend-label")
+            item.append(dot)
+            item.append(lbl)
+            legend_box.append(item)
+
+        header.append(legend_box)
+        self.append(header)
+
+        # Main chart area
+        chart_area = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        chart_area.set_vexpand(True)
+        chart_area.set_margin_top(24)
+
+        # We leave y-axis empty in this mockup
+        bars_container = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        bars_container.set_homogeneous(True)
+        bars_container.set_hexpand(True)
+
+        days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+
+        # Fake data for 5 days
+        mock_data = [
+            {"prod": 150, "neut": 30, "leisure": 50},
+            {"prod": 180, "neut": 40, "leisure": 30},
+            {"prod": 120, "neut": 20, "leisure": 80},
+            {"prod": 200, "neut": 10, "leisure": 20},
+            {"prod": 90, "neut": 60, "leisure": 100},
+        ]
+
+        max_val = max([d["prod"] + d["neut"] + d["leisure"] for d in mock_data])
+
+        for i, day in enumerate(days):
+            col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+            # Bar container (bottom aligned)
+            bar_area = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            bar_area.set_vexpand(True)
+            bar_area.set_valign(Gtk.Align.END)
+
+            stacked_bar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            stacked_bar.add_css_class("stacked-bar-container")
+            stacked_bar.set_halign(Gtk.Align.CENTER)
+            stacked_bar.set_size_request(24, -1)
+
+            d = mock_data[i]
+            total_h = 160 # max height of bar
+
+            # Calculate heights
+            h_leisure = (d["leisure"] / max_val) * total_h
+            h_neut = (d["neut"] / max_val) * total_h
+            h_prod = (d["prod"] / max_val) * total_h
+
+            # Leisure (top)
+            if h_leisure > 0:
+                seg = Gtk.Box()
+                seg.set_size_request(-1, h_leisure)
+                seg.add_css_class("chart-bar-other") # use tertiary color in CSS
+                stacked_bar.append(seg)
+
+            # Neutral (middle)
+            if h_neut > 0:
+                seg = Gtk.Box()
+                seg.set_size_request(-1, h_neut)
+                seg.add_css_class("chart-bar-neutral") # use surface_dim in CSS
+                stacked_bar.append(seg)
+
+            # Productive (bottom)
+            if h_prod > 0:
+                seg = Gtk.Box()
+                seg.set_size_request(-1, h_prod)
+                seg.add_css_class("chart-bar-productivity")
+                stacked_bar.append(seg)
+
+            bar_area.append(stacked_bar)
+            col.append(bar_area)
+
+            lbl = Gtk.Label(label=day)
+            lbl.add_css_class("chart-label")
+            lbl.set_margin_top(12)
+            col.append(lbl)
+
+            bars_container.append(col)
+
+        chart_area.append(bars_container)
+        self.append(chart_area)
+
+
+class ProductivityCategoriesCard(Gtk.Box):
+    def __init__(self, categories_data):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+        self.add_css_class("card")
+        self.set_hexpand(True)
+        self.set_vexpand(True)
+
+        title = Gtk.Label(label="Categories", xalign=0)
+        title.add_css_class("card-title-lg")
+        self.append(title)
+
+        list_box = Gtk.ListBox()
+        list_box.set_selection_mode(Gtk.SelectionMode.NONE)
+        # remove background from listbox to blend into card
+        list_box.add_css_class("transparent-list")
+
+        # Use provided category data or dummy if empty
+        if not categories_data:
+            categories_data = [
+                ("Coding", 3 * 3600 + 45 * 60, "progress-fill-primary", "code-symbolic"),
+                ("Design", 1 * 3600 + 20 * 60, "progress-fill-tertiary", "color-select-symbolic"),
+                ("Writing", 45 * 60, "progress-fill-secondary", "accessories-text-editor-symbolic")
+            ]
+
+        # Calculate max time for progress bar scaling
+        max_time = max([c[1] for c in categories_data]) if categories_data else 1
+
+        for name, seconds, css_class, icon_name in categories_data:
+            row = Gtk.ListBoxRow()
+            row.set_activatable(False)
+            row.set_selectable(False)
+
+            item_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+            item_box.set_margin_top(12)
+            item_box.set_margin_bottom(12)
+
+            top_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+
+            icon = Gtk.Image(icon_name=icon_name)
+            icon.add_css_class("category-icon-bg")
+
+            name_lbl = Gtk.Label(label=name, xalign=0)
+            name_lbl.add_css_class("card-title")
+
+            top_box.append(icon)
+            top_box.append(name_lbl)
+
+            hours = seconds // 3600
+            mins = (seconds % 3600) // 60
+            time_str = f"{int(hours)}h {int(mins)}m" if hours > 0 else f"{int(mins)}m"
+            time_lbl = Gtk.Label(label=time_str, xalign=1)
+            time_lbl.add_css_class("card-title")
+            time_lbl.set_hexpand(True)
+            top_box.append(time_lbl)
+
+            item_box.append(top_box)
+
+            track = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+            track.add_css_class("progress-track")
+            track.set_size_request(-1, 6)
+
+            fill = Gtk.Box()
+            fill.add_css_class(css_class)
+            fill.set_size_request(-1, 6)
+
+            # Simple ratio
+            ratio = seconds / max_time
+            # Workaround to set width fraction using size request (e.g. max 200px)
+            fill.set_size_request(int(200 * ratio), 6)
+            fill.set_halign(Gtk.Align.START)
+            fill.set_hexpand(False)
+
+            track.append(fill)
+            item_box.append(track)
+
+            row.set_child(item_box)
+            list_box.append(row)
+
+        self.append(list_box)
+
+
+class RecentDeepWorkCard(Gtk.Box):
+    def __init__(self):
+        super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+        self.add_css_class("card")
+        self.set_hexpand(True)
+        self.set_vexpand(True)
+
+        header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        title = Gtk.Label(label="Recent Deep Work", xalign=0)
+        title.add_css_class("card-title-lg")
+
+        view_all = Gtk.Button(label="View All")
+        view_all.add_css_class("link-button")
+        view_all.set_halign(Gtk.Align.END)
+        view_all.set_hexpand(True)
+
+        header.append(title)
+        header.append(view_all)
+        self.append(header)
+
+        mock_data = [
+            ("VS Code Architecture", "09:00 AM - 11:30 AM", "2h 30m", "CODING", "primary"),
+            ("Figma UI Kit Update", "01:00 PM - 02:20 PM", "1h 20m", "DESIGN", "tertiary"),
+            ("Code Review & PRs", "03:00 PM - 04:15 PM", "1h 15m", "CODING", "primary"),
+        ]
+
+        list_box = Gtk.ListBox()
+        list_box.set_selection_mode(Gtk.SelectionMode.NONE)
+        list_box.add_css_class("transparent-list")
+
+        for name, time_range, dur, badge, color_cls in mock_data:
+            row = Gtk.ListBoxRow()
+            row.set_activatable(False)
+            row.set_selectable(False)
+
+            item_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+            item_box.set_margin_top(12)
+            item_box.set_margin_bottom(12)
+
+            # Left accent bar
+            accent = Gtk.Box()
+            accent.set_size_request(4, -1)
+            accent.add_css_class(f"bg-{color_cls}")
+            accent.add_css_class("rounded")
+
+            item_box.append(accent)
+
+            center_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+            name_lbl = Gtk.Label(label=name, xalign=0)
+            name_lbl.add_css_class("label-md")
+            name_lbl.add_css_class("text-on-surface")
+
+            time_lbl = Gtk.Label(label=f"⏱ {time_range}", xalign=0)
+            time_lbl.add_css_class("label-sm")
+
+            center_box.append(name_lbl)
+            center_box.append(time_lbl)
+            center_box.set_hexpand(True)
+            item_box.append(center_box)
+
+            right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+            dur_lbl = Gtk.Label(label=dur, xalign=1)
+            dur_lbl.add_css_class("label-md")
+            dur_lbl.add_css_class("text-primary")
+
+            badge_lbl = Gtk.Label(label=badge, xalign=1)
+            badge_lbl.add_css_class("badge")
+
+            right_box.append(dur_lbl)
+            right_box.append(badge_lbl)
+            item_box.append(right_box)
+
+            row.set_child(item_box)
+            list_box.append(row)
+
+        self.append(list_box)
