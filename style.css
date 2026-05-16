@@ -513,3 +513,16 @@ window {
     font-weight: 700;
     letter-spacing: 0.05em;
 }
+
+/* App Toggle Button */
+.app-toggle-btn {
+    border: 1px solid @outline_variant;
+    border-radius: 4px;
+    background-color: transparent;
+    color: @on_surface_variant;
+}
+.app-toggle-btn.active {
+    background-color: @primary;
+    border-color: @primary;
+    color: @on_primary;
+}
