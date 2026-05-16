@@ -100,6 +100,15 @@ window {
     background-color: @surface_low;
 }
 
+.outline-btn {
+    border: 1px solid @outline_variant;
+    background-color: transparent;
+}
+
+.outline-btn:hover {
+    background-color: @surface_low;
+}
+
 .icon-button {
     background: transparent;
     color: @on_surface_variant;
@@ -420,4 +429,87 @@ window {
     color: @on_surface_variant;
     font-size: 13px;
     font-weight: 500;
+}
+
+/* Productivity Tracker Cards Extra Styles */
+#productivity-score-text {
+    color: @primary;
+    font-size: 48px;
+    font-weight: 700;
+}
+
+.trend-badge-positive {
+    background-color: rgba(129, 199, 132, 0.2);
+    border-radius: 999px;
+    padding: 4px 8px;
+}
+
+.trend-text-positive {
+    color: #388e3c;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.legend-dot-primary {
+    background-color: @primary;
+}
+
+.legend-dot-neutral {
+    background-color: @surface_dim;
+}
+
+.legend-dot-tertiary {
+    background-color: @tertiary;
+}
+
+.chart-bar-neutral {
+    background-color: @surface_dim;
+}
+
+.transparent-list {
+    background-color: transparent;
+}
+
+.category-icon-bg {
+    background-color: @surface_low;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+.link-button {
+    background: transparent;
+    color: @primary;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+}
+
+.link-button:hover {
+    text-decoration: underline;
+}
+
+.bg-primary {
+    background-color: @primary;
+}
+
+.bg-tertiary {
+    background-color: @tertiary;
+}
+
+.rounded {
+    border-radius: 4px;
+}
+
+.text-primary {
+    color: @primary;
+}
+
+.badge {
+    background-color: @surface_dim;
+    color: @on_surface_variant;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
 }
