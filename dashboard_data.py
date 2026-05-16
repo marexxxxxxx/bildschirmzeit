@@ -5,8 +5,8 @@ from zoneinfo import ZoneInfo
 
 DB_PATH = os.path.expanduser("~/.local/share/window_monitor/windows.db")
 
-# Sample Category Mapping
-CATEGORY_MAP = {
+# Sample Category Mapping (Used to seed DB if empty)
+INITIAL_CATEGORY_MAP = {
     "Code": "Productivity",
     "Cursor": "Productivity",
     "Kitty": "Productivity",
@@ -17,6 +17,58 @@ CATEGORY_MAP = {
     "Discord": "Entertainment",
     "Spotify": "Entertainment",
 }
+
+def init_categories_db():
+    if not os.path.exists(DB_PATH):
+        return
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Ensure tables exist (in case of an old database)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE,
+            color TEXT,
+            is_productive BOOLEAN
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS category_mapping (
+            app_name TEXT PRIMARY KEY,
+            category_id INTEGER,
+            FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
+        )
+    ''')
+    conn.commit()
+
+    # Check if we have any categories
+    cursor.execute("SELECT COUNT(*) FROM categories")
+    if cursor.fetchone()[0] == 0:
+        # Seed initial categories
+        categories_to_seed = {
+            "Productivity": ("#64B5F6", True),
+            "Communication": ("#81C784", False),
+            "Entertainment": ("#FFB74D", False),
+            "Other": ("#9E9E9E", False)
+        }
+        for cat_name, (color, is_prod) in categories_to_seed.items():
+            cursor.execute("INSERT INTO categories (name, color, is_productive) VALUES (?, ?, ?)", (cat_name, color, is_prod))
+
+        # Seed initial mappings
+        cursor.execute("SELECT id, name FROM categories")
+        cat_rows = cursor.fetchall()
+        cat_id_map = {row[1]: row[0] for row in cat_rows}
+
+        for app, cat_name in INITIAL_CATEGORY_MAP.items():
+            cat_id = cat_id_map.get(cat_name)
+            if cat_id:
+                cursor.execute("INSERT INTO category_mapping (app_name, category_id) VALUES (?, ?)", (app, cat_id))
+
+        conn.commit()
+
+    conn.close()
 
 def get_today_bounds():
     zurich = ZoneInfo("Europe/Zurich")
@@ -109,15 +161,32 @@ def fetch_week_data():
     conn.close()
     return rows
 
+def get_app_category_map():
+    if not os.path.exists(DB_PATH):
+        return {}
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT cm.app_name, c.name
+        FROM category_mapping cm
+        JOIN categories c ON cm.category_id = c.id
+    ''')
+    mapping = {row[0]: row[1] for row in cursor.fetchall()}
+    conn.close()
+    return mapping
+
 def get_weekly_usage_by_day_and_category():
     data = fetch_week_data()
-    # Initialize days 0 (Monday) to 6 (Sunday)
+
+    # Initialize with base categories, dynamically add others if found
+    base_cats = ["Productivity", "Communication", "Entertainment", "Other"]
     weekly_data = {
-        i: {"Productivity": 0.0, "Communication": 0.0, "Entertainment": 0.0, "Other": 0.0}
+        i: {cat: 0.0 for cat in base_cats}
         for i in range(7)
     }
 
     zurich = ZoneInfo("Europe/Zurich")
+    app_cat_map = get_app_category_map()
 
     for row in data:
         try:
@@ -131,9 +200,11 @@ def get_weekly_usage_by_day_and_category():
                 continue
 
             duration = row['duration']
-            cat = CATEGORY_MAP.get(app_name, "Other")
+            cat = app_cat_map.get(app_name, "Other")
 
             if weekday in weekly_data:
+                if cat not in weekly_data[weekday]:
+                    weekly_data[weekday][cat] = 0.0
                 weekly_data[weekday][cat] += duration
         except Exception:
             pass
@@ -166,6 +237,8 @@ def get_categories():
     categories = {"Productivity": 0.0, "Communication": 0.0, "Entertainment": 0.0, "Other": 0.0}
     total = 0.0
 
+    app_cat_map = get_app_category_map()
+
     for row in data:
         app_name = row['app'] if row['app'] else row['class']
         if not app_name:
@@ -174,7 +247,9 @@ def get_categories():
         duration = row['duration']
         total += duration
 
-        cat = CATEGORY_MAP.get(app_name, "Other")
+        cat = app_cat_map.get(app_name, "Other")
+        if cat not in categories:
+            categories[cat] = 0.0
         categories[cat] += duration
 
     percentages = {}
@@ -186,6 +261,69 @@ def get_categories():
             percentages[cat] = 0.0
 
     return percentages
+
+def get_all_categories():
+    if not os.path.exists(DB_PATH):
+        return []
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM categories")
+    cats = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return cats
+
+def add_category(name, color, is_productive):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO categories (name, color, is_productive) VALUES (?, ?, ?)",
+                       (name, color, is_productive))
+        conn.commit()
+        cat_id = cursor.lastrowid
+    except sqlite3.IntegrityError:
+        cat_id = None
+    finally:
+        conn.close()
+    return cat_id
+
+def delete_category(category_id):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM categories WHERE id = ?", (category_id,))
+    conn.commit()
+    conn.close()
+
+def assign_apps_to_category(category_id, app_names_list):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    for app_name in app_names_list:
+        cursor.execute('''
+            INSERT INTO category_mapping (app_name, category_id)
+            VALUES (?, ?)
+            ON CONFLICT(app_name) DO UPDATE SET category_id=excluded.category_id
+        ''', (app_name, category_id))
+
+    conn.commit()
+    conn.close()
+
+def get_all_tracked_apps():
+    """Returns a list of unique app names (or fallback to class) tracked in the DB so far."""
+    if not os.path.exists(DB_PATH):
+        return []
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT app, class FROM window_events")
+
+    apps = set()
+    for row in cursor.fetchall():
+        app_name = row[0] if row[0] else row[1]
+        if app_name:
+            apps.add(app_name)
+
+    conn.close()
+    return list(apps)
 
 if __name__ == "__main__":
     print(f"Total: {get_total_screen_time()}s")

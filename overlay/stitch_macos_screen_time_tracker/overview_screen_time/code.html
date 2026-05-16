@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-[#f8f9fc]" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Screen Time Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style data-purpose="typography">
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+<style data-purpose="custom-scrollbars">
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="h-full flex overflow-hidden">
+<!-- BEGIN: Sidebar -->
+<aside class="w-64 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col h-full" data-purpose="navigation-sidebar">
+<!-- Profile & Brand -->
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center text-gray-500 overflow-hidden"><svg class="w-7 h-7 mt-2" fill="currentColor" viewbox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"></path></svg></div>
+<div>
+<h1 class="text-lg font-bold text-[#1a2b56] leading-tight">Screen Time</h1>
+<p class="text-xs text-gray-400">Last synced: 2m ago</p>
+</div>
+</div>
+</div>
+<!-- Navigation Menu -->
+<nav class="flex-1 px-4 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg bg-[#E8F1FF] text-[#007AFF]" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6h16M4 12h16m-7 6h7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Overview
+      </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Blocked Apps
+      </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Productivity Tracker
+      </a>
+</nav>
+<!-- Bottom Actions -->
+<div class="p-4 border-t border-gray-100">
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Settings
+      </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors mt-1" href="#">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        Help
+      </a>
+</div>
+</aside>
+<!-- END: Sidebar -->
+<!-- BEGIN: Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-[#f8f9fc]">
+<!-- BEGIN: Header -->
+<header class="sticky top-0 z-10 bg-[#f8f9fc] px-10 pt-10 pb-6 flex items-center justify-between">
+<div class="flex items-baseline gap-4">
+<h2 class="text-3xl font-extrabold text-gray-900">Overview</h2>
+<span class="text-sm text-gray-400">Today, Oct 24</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="px-4 py-2 text-sm font-semibold text-[#4263eb] bg-[#eef2ff] rounded-lg hover:bg-[#e0e7ff] transition-colors">Share</button>
+<button class="px-4 py-2 text-sm font-semibold text-white bg-[#007AFF] rounded-lg hover:opacity-90 transition-opacity shadow-sm">Add Limit</button>
+</div>
+</header>
+<!-- END: Header -->
+<!-- BEGIN: Dashboard Grid -->
+<div class="px-10 pb-10 grid grid-cols-12 gap-6">
+<!-- Card: Total Screen Time -->
+<section class="col-span-12 lg:col-span-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-[320px]">
+<div>
+<div class="flex items-center gap-2 text-gray-500 mb-4">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-sm font-medium">Total Screen Time</span>
+</div>
+<div class="mb-2">
+<span class="text-6xl font-extrabold text-gray-900 tracking-tight">6h 45m</span>
+</div>
+<div class="flex items-center gap-1 text-sm font-medium text-green-500">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 14l-7 7m0 0l-7-7m7 7V3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span>12% from yesterday</span>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-semibold text-gray-400">
+<span>Productivity Score</span>
+<span>78%</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+<div class="h-full rounded-full bg-[#007AFF]" style="width: 78%"></div>
+</div>
+</div>
+</section>
+<!-- Card: Daily Usage (Chart) -->
+<section class="col-span-12 lg:col-span-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-[320px] flex flex-col">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-lg font-bold text-gray-900">Daily Usage</h3>
+<div class="bg-gray-100 p-1 rounded-lg flex gap-1">
+<button class="px-3 py-1 text-xs font-semibold bg-white rounded shadow-sm">Day</button>
+<button class="px-3 py-1 text-xs font-semibold text-gray-500 hover:text-gray-900">Week</button>
+</div>
+</div>
+<div class="flex-1 relative">
+<!-- Placeholder Area Chart using SVG -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 200">
+<!-- Grid Lines -->
+<line stroke="#f1f5f9" stroke-width="1" x1="0" x2="800" y1="0" y2="0"></line>
+<line stroke="#f1f5f9" stroke-width="1" x1="0" x2="800" y1="50" y2="50"></line>
+<line stroke="#f1f5f9" stroke-width="1" x1="0" x2="800" y1="100" y2="100"></line>
+<line stroke="#f1f5f9" stroke-width="1" x1="0" x2="800" y1="150" y2="150"></line>
+<line stroke="#f1f5f9" stroke-width="1" x1="0" x2="800" y1="200" y2="200"></line>
+<!-- Area 1 (Background/Upper) - Purple -->
+<path d="M 0 180 Q 100 40, 200 30 Q 300 130, 400 120 Q 500 40, 600 30 Q 700 130, 800 60 L 800 200 L 0 200 Z" fill="#5E5CE6" fill-opacity="0.9"></path>
+<!-- Area 2 (Middle) - Green -->
+<path d="M 0 190 Q 100 80, 200 70 Q 300 150, 400 140 Q 500 80, 600 70 Q 700 150, 800 100 L 800 200 L 0 200 Z" fill="#34C759" fill-opacity="0.9"></path>
+<!-- Area 3 (Front/Lower) - Blue -->
+<path d="M 0 200 Q 100 120, 200 110 Q 300 170, 400 160 Q 500 120, 600 110 Q 700 170, 800 140 L 800 200 L 0 200 Z" fill="#007AFF" fill-opacity="1"></path>
+</svg>
+<!-- Chart Labels -->
+<div class="absolute -left-6 top-0 bottom-0 flex flex-col justify-between text-[10px] text-gray-400 py-1">
+<span>3h</span><span>2h</span><span>1h</span><span>0h</span>
+</div>
+<div class="flex justify-between text-[10px] text-gray-400 mt-2 px-2">
+<span>6 AM</span><span>9 AM</span><span>12 PM</span><span>3 PM</span><span>6 PM</span><span>9 PM</span>
+</div>
+</div>
+</section>
+<!-- Card: Most Used (Scrollable List) -->
+<section class="col-span-12 lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col max-h-[500px]">
+<h3 class="text-lg font-bold text-gray-900 mb-6">Most Used</h3>
+<div class="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-8" data-purpose="scrollable-app-list">
+<!-- VS Code -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-gray-900 flex items-center justify-center text-white text-[10px]">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"></path></svg>
+</div>
+<span class="text-sm font-semibold text-gray-800">VS Code</span>
+</div>
+<span class="text-xs font-medium text-gray-500">2h 15m</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-1.5">
+<div class="h-full rounded-full bg-[#007AFF]" style="width: 85%"></div>
+</div>
+</div>
+<!-- Safari -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-blue-100 flex items-center justify-center text-blue-600">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M16.2 7.8l-2 5.6-5.6 2 2-5.6 5.6-2z"></path></svg>
+</div>
+<span class="text-sm font-semibold text-gray-800">Safari</span>
+</div>
+<span class="text-xs font-medium text-gray-500">1h 45m</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-1.5">
+<div class="h-full rounded-full bg-[#007AFF]" style="width: 65%"></div>
+</div>
+</div>
+<!-- Figma -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-orange-100 flex items-center justify-center text-orange-600">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M5 5.5A3.5 3.5 0 018.5 2H12v7H8.5A3.5 3.5 0 015 5.5z"></path><path d="M12 2h3.5a3.5 3.5 0 110 7H12V2z"></path><path d="M5 12.5A3.5 3.5 0 018.5 9H12v7H8.5A3.5 3.5 0 015 12.5z"></path><path d="M5 19.5A3.5 3.5 0 018.5 16H12v3.5a3.5 3.5 0 11-7 0z"></path><path d="M12 16h3.5a3.5 3.5 0 11-3.5 3.5V16z"></path></svg>
+</div>
+<span class="text-sm font-semibold text-gray-800">Figma</span>
+</div>
+<span class="text-xs font-medium text-gray-500">1h 20m</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-1.5">
+<div class="h-full rounded-full bg-[#007AFF]" style="width: 48%"></div>
+</div>
+</div>
+<!-- Slack -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-purple-100 flex items-center justify-center text-purple-600">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect><path d="M9 3v18M15 3v18M3 9h18M3 15h18"></path></svg>
+</div>
+<span class="text-sm font-semibold text-gray-800">Slack</span>
+</div>
+<span class="text-xs font-medium text-gray-500">55m</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-1.5">
+<div class="bg-purple-400 h-full rounded-full" style="width: 30%"></div>
+</div>
+</div>
+<!-- Spotify -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-green-100 flex items-center justify-center text-green-600">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 11.5c3-1 5-1 8 0M9 14c2.5-.7 4.5-.7 7 0M9.5 16.5c2-.5 3.5-.5 5.5 0"></path></svg>
+</div>
+<span class="text-sm font-semibold text-gray-800">Spotify</span>
+</div>
+<span class="text-xs font-medium text-gray-500">45m</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-1.5">
+<div class="bg-green-500 h-full rounded-full" style="width: 25%"></div>
+</div>
+</div>
+<!-- Mail -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-blue-50 flex items-center justify-center text-blue-500">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><path d="M22 6l-10 7L2 6"></path></svg>
+</div>
+<span class="text-sm font-semibold text-gray-800">Mail</span>
+</div>
+<span class="text-xs font-medium text-gray-500">30m</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-1.5">
+<div class="bg-blue-400 h-full rounded-full" style="width: 18%"></div>
+</div>
+</div>
+<!-- Calendar -->
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-red-50 flex items-center justify-center text-red-500">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><rect height="18" rx="2" ry="2" width="18" x="3" y="4"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+</div>
+<span class="text-sm font-semibold text-gray-800">Calendar</span>
+</div>
+<span class="text-xs font-medium text-gray-500">20m</span>
+</div>
+<div class="w-full bg-gray-100 rounded-full h-1.5">
+<div class="bg-red-400 h-full rounded-full" style="width: 12%"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Card: Categories (Doughnut Chart) -->
+<section class="col-span-12 lg:col-span-5 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-[400px] flex flex-col">
+<h3 class="text-lg font-bold text-gray-900 mb-8">Categories</h3>
+<div class="flex-1 flex items-center justify-between">
+<!-- Custom CSS Doughnut -->
+<div class="relative w-40 h-40" data-purpose="doughnut-container">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<!-- Background Circle -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#f1f5f9" stroke-width="3"></circle>
+<!-- Productivity (60%) -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#007AFF" stroke-dasharray="60 40" stroke-dashoffset="0" stroke-width="3"></circle>
+<!-- Communication (25%) -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#34C759" stroke-dasharray="25 75" stroke-dashoffset="-60" stroke-width="3"></circle>
+<!-- Entertainment (15%) -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#5E5CE6" stroke-dasharray="15 85" stroke-dashoffset="-85" stroke-width="3"></circle>
+</svg>
+</div>
+<!-- Legend -->
+<div class="flex-1 pl-8 space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-[#007AFF]"></div>
+<span class="text-sm font-medium text-gray-600">Productivity</span>
+</div>
+<span class="text-sm font-bold text-gray-900">60%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-[#34C759]"></div>
+<span class="text-sm font-medium text-gray-600">Communication</span>
+</div>
+<span class="text-sm font-bold text-gray-900">25%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-[#5E5CE6]"></div>
+<span class="text-sm font-medium text-gray-600">Entertainment</span>
+</div>
+<span class="text-sm font-bold text-gray-900">15%</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- END: Dashboard Grid -->
+</main>
+<!-- END: Main Content Area -->
+</body></html>
